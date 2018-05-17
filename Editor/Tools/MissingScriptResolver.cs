@@ -19,18 +19,16 @@ using System.Linq;
 using System.Reflection;
 
 using UnityObject = UnityEngine.Object;
+using UnityEditor.SceneManagement;
 
-//Test
-[CustomEditor( typeof( MonoBehaviour ) )]
+[CustomEditor(typeof(MonoBehaviour))]
 public class MissingScriptResolver : Editor
 {
 
 	#region Static variables 
 
 	private const string HELP_INFO = @"This component has a missing script. 
-
 Possible candidates for the missing script are shown below. Click the button that represents the missing script to assign that script.
-
 This component's properties are shown below to help you determine which script is correct.";
 
 	// Will hold a ScriptMatcher reference for each discovered type
@@ -43,7 +41,7 @@ This component's properties are shown below to help you determine which script i
 
 	#region Menu add-ins 
 
-	[MenuItem( "Unity Helpers/Find Missing Scripts In Prefabs", priority = 1 )]
+	[MenuItem("Unity Helpers/Find Missing Scripts In Prefabs", priority = 1)]
 	public static void FindMissingScriptsInPrefabs()
 	{
 
@@ -52,16 +50,16 @@ This component's properties are shown below to help you determine which script i
 		#region Load all assets in project before searching
 
 		var allAssetPaths = AssetDatabase.GetAllAssetPaths();
-		for( int i = 0; i < allAssetPaths.Length; i++ )
+		for (int i = 0; i < allAssetPaths.Length; i++)
 		{
 
-			if( Environment.TickCount - progressTime > 250 )
+			if (Environment.TickCount - progressTime > 250)
 			{
 				progressTime = Environment.TickCount;
-				EditorUtility.DisplayProgressBar( "Find Missing Scripts", "Searching prefabs", (float)i / (float)allAssetPaths.Length );
+				EditorUtility.DisplayProgressBar("Find Missing Scripts", "Searching prefabs", (float)i / (float)allAssetPaths.Length);
 			}
 
-			AssetDatabase.LoadMainAssetAtPath( allAssetPaths[ i ] );
+			AssetDatabase.LoadMainAssetAtPath(allAssetPaths[i]);
 
 		}
 
@@ -70,64 +68,64 @@ This component's properties are shown below to help you determine which script i
 		#endregion
 
 		var prefabs = Resources
-			.FindObjectsOfTypeAll( typeof( GameObject ) )
+			.FindObjectsOfTypeAll(typeof(GameObject))
 			.Cast<GameObject>()
-			.Where( x => x.transform.parent == null && isPrefab( x ) )
-			.OrderBy( x => x.name )
+			.Where(x => x.transform.parent == null && isPrefab(x))
+			.OrderBy(x => x.name)
 			.ToList();
 
 		var brokenPrefabs = prefabs
-			.Where( x => x.GetComponentsInChildren<Component>( true ).Any( c => c == null ) )
+			.Where(x => x.GetComponentsInChildren<Component>(true).Any(c => c == null))
 			.ToList();
 
 		var message = "";
-		if( brokenPrefabs.Count > 0 )
+		if (brokenPrefabs.Count > 0)
 		{
 
-			for( int i = 0; i < brokenPrefabs.Count; i++ )
+			for (int i = 0; i < brokenPrefabs.Count; i++)
 			{
-				var prefab = brokenPrefabs[ i ];
-				var path = AssetDatabase.GetAssetPath( prefab );
-				Debug.LogWarning( "Prefab has missing scripts: " + path, prefab );
+				var prefab = brokenPrefabs[i];
+				var path = AssetDatabase.GetAssetPath(prefab);
+				Debug.LogWarning("Prefab has missing scripts: " + path, prefab);
 			}
 
-			message = string.Format( "Found {0} prefabs with missing scripts. The full list can be viewed in the console pane", brokenPrefabs.Count );
+			message = string.Format("Found {0} prefabs with missing scripts. The full list can be viewed in the console pane", brokenPrefabs.Count);
 
 		}
 		else
 		{
-			message = string.Format( "Searched {0} prefabs. No missing scripts detected.", prefabs.Count );
+			message = string.Format("Searched {0} prefabs. No missing scripts detected.", prefabs.Count);
 		}
 
-		EditorUtility.DisplayDialog( "Find Missing Scripts", message, "OK" );
+		EditorUtility.DisplayDialog("Find Missing Scripts", message, "OK");
 
 	}
 
-	[MenuItem( "Unity Helpers/Find Missing Scripts In Scene", priority = 0 )]
+	[MenuItem("Unity Helpers/Find Missing Scripts In Scene", priority = 0)]
 	public static void FindMissingScriptsInScene()
 	{
-		
+
 		var broken = findBrokenObjectsInScene();
-		if( broken.Count == 0 )
+		if (broken.Count == 0)
 		{
-			
-			EditorUtility.DisplayDialog( "No missing scripts", "There are no objects with missing scripts in this scene.", "YAY!" );
-			
+
+			EditorUtility.DisplayDialog("No missing scripts", "There are no objects with missing scripts in this scene.", "YAY!");
+
 			// Make sure static lists are cleaned up
 			types = null;
 			candidates = null;
-			
+
 			return;
 
 		}
 
 		// Grab the object highest up in the scene hierarchy
 		var sorted = broken
-			.Select( x => new { target = x, path = getObjectPath( x ) } )
-			.OrderBy( x => x.path )
+			.Select(x => new { target = x, path = getObjectPath(x) })
+			.OrderBy(x => x.path)
 			.First();
 
-		Debug.LogWarning( string.Format( "{0} objects in this scene have missing scripts, selecting '{1}' first", broken.Count, sorted.target.name ) );
+		Debug.LogWarning(string.Format("{0} objects in this scene have missing scripts, selecting '{1}' first", broken.Count, sorted.target.name));
 		Selection.activeGameObject = sorted.target;
 
 	}
@@ -144,8 +142,8 @@ This component's properties are shown below to help you determine which script i
 
 			// If the inspected component does not have a missing script, 
 			// revert to base Inspector functionality
-			var scriptProperty = this.serializedObject.FindProperty( "m_Script" );
-			if( scriptProperty == null || scriptProperty.objectReferenceValue != null )
+			var scriptProperty = this.serializedObject.FindProperty("m_Script");
+			if (scriptProperty == null || scriptProperty.objectReferenceValue != null)
 			{
 				base.OnInspectorGUI();
 				return;
@@ -155,11 +153,11 @@ This component's properties are shown below to help you determine which script i
 			// Not sure what's up, but doing so with this custom inspector 
 			// crashes Unity with 100% reproducability.
 			var behavior = target as MonoBehaviour;
-			if( behavior != null && isPrefab( behavior.gameObject ) )
+			if (behavior != null && isPrefab(behavior.gameObject))
 			{
 
 				var prefabMessage = @"The Missing Script Resolver cannot edit prefabs directly. Please move this prefab into a scene before editing";
-				EditorGUILayout.HelpBox( prefabMessage, MessageType.Error );
+				EditorGUILayout.HelpBox(prefabMessage, MessageType.Error);
 
 				types = null;
 				candidates = null;
@@ -170,8 +168,8 @@ This component's properties are shown below to help you determine which script i
 			}
 
 			// Ensure candidate list contains an entry for the inspected component
-			if( candidates == null ) candidates = new Dictionary<UnityObject, List<ScriptLookup>>();
-			if( !candidates.ContainsKey( target ) )
+			if (candidates == null) candidates = new Dictionary<UnityObject, List<ScriptLookup>>();
+			if (!candidates.ContainsKey(target))
 			{
 
 				// Find all MonoScript instances that are a possible match
@@ -179,28 +177,28 @@ This component's properties are shown below to help you determine which script i
 				// them from mostly likely match to least likely match.
 				var candidateLookup =
 					getDefinedScriptTypes()
-					.Select( c => new ScriptLookup() { Matcher = c, Score = c.ScoreMatch( serializedObject ) } )
-					.Where( c => c.Score > 0 )
-					.OrderByDescending( c => c.Score )
+					.Select(c => new ScriptLookup() { Matcher = c, Score = c.ScoreMatch(serializedObject) })
+					.Where(c => c.Score > 0)
+					.OrderByDescending(c => c.Score)
 					.ToList();
 
-				candidates[ target ] = candidateLookup;
+				candidates[target] = candidateLookup;
 
 			}
 
 			// Retrieve the list of possible matching scripts
-			var possibleMatches = candidates[ target ];
+			var possibleMatches = candidates[target];
 
-			GUILayout.Label( "Missing Script", "HeaderLabel" );
+			GUILayout.Label("Missing Script", "HeaderLabel");
 
 			// Show help information 
-			EditorGUILayout.HelpBox( HELP_INFO, MessageType.Warning );
+			EditorGUILayout.HelpBox(HELP_INFO, MessageType.Warning);
 
 			// If there are no possible matches found, let the user know that they
 			// must manually assign the missing script.
-			if( possibleMatches.Count == 0 )
+			if (possibleMatches.Count == 0)
 			{
-				EditorGUILayout.HelpBox( "No matching scripts found.", MessageType.Error );
+				EditorGUILayout.HelpBox("No matching scripts found.", MessageType.Error);
 				base.OnInspectorGUI();
 				return;
 			}
@@ -210,30 +208,31 @@ This component's properties are shown below to help you determine which script i
 			// whose fields appear to be a match based on name and type, such
 			// as when one script inherits from another without adding any 
 			// additional serialized properties.
-			var candidateCountConfig = EditorPrefs.GetInt( "DaikonForge.MissingScriptCount", 3 );
-			var candidateCount = Mathf.Max( EditorGUILayout.IntField( "Num Scripts to Show", candidateCountConfig ), 1 );
-			if( candidateCount != candidateCountConfig )
+			var candidateCountConfig = EditorPrefs.GetInt("DaikonForge.MissingScriptCount", 3);
+			var candidateCount = Mathf.Max(EditorGUILayout.IntField("Num Scripts to Show", candidateCountConfig), 1);
+			if (candidateCount != candidateCountConfig)
 			{
-				EditorPrefs.SetInt( "DaikonForge.MissingScriptCount", candidateCount );
+				EditorPrefs.SetInt("DaikonForge.MissingScriptCount", candidateCount);
 			}
 
 			EditorGUILayout.BeginHorizontal();
-			GUILayout.Space( 25 );
+			GUILayout.Space(25);
 			EditorGUILayout.BeginVertical();
 
-			for( int i = 0; i < Mathf.Min( candidateCount, possibleMatches.Count ); i++ )
+			for (int i = 0; i < Mathf.Min(candidateCount, possibleMatches.Count); i++)
 			{
 
 				// Display a button to select the candidate script
-				var candidate = possibleMatches[ i ];
-				if( !GUILayout.Button( candidate.Matcher.Name, "minibutton" ) )
+				var candidate = possibleMatches[i];
+				if (!GUILayout.Button(candidate.Matcher.Name, "minibutton"))
 					continue;
 
 				// Make this operation undo-able
 #if UNITY_4_3
 				Undo.RegisterCompleteObjectUndo( target, "Assign missing script" );
 #else
-				Undo.RegisterSceneUndo( "Assign missing script" );
+				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+				//Undo.RegisterSceneUndo( "Assign missing script" );
 #endif
 
 				// Assign the selected MonoScript 
@@ -242,21 +241,23 @@ This component's properties are shown below to help you determine which script i
 				scriptProperty.serializedObject.Update();
 
 				// Save the scene in case Unity crashes
-				EditorUtility.SetDirty( this.target );
-				EditorApplication.SaveScene();
-				EditorApplication.SaveAssets();
+				EditorUtility.SetDirty(this.target);
+				EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+				AssetDatabase.SaveAssets();
+				//EditorApplication.SaveScene();
+				//EditorApplication.SaveAssets();
 
 				// Check for more objects with missing scripts
-				if( Selection.activeGameObject.activeInHierarchy )
+				if (Selection.activeGameObject.activeInHierarchy)
 				{
 
 					// If there are no more missing scripts in this scene, 
 					// let the developer know and clean up static lists
 					var broken = findBrokenObjectsInScene();
-					if( broken.Count == 0 )
+					if (broken.Count == 0)
 					{
 
-						EditorUtility.DisplayDialog( "No missing scripts", "There are no objects with missing scripts in this scene", "YAY!" );
+						EditorUtility.DisplayDialog("No missing scripts", "There are no objects with missing scripts in this scene", "YAY!");
 
 						// Make sure static lists are cleaned up
 						types = null;
@@ -281,12 +282,12 @@ This component's properties are shown below to help you determine which script i
 			EditorGUILayout.EndHorizontal();
 
 		}
-		catch( Exception err )
+		catch (Exception err)
 		{
-			Debug.LogError( err );
+			Debug.LogError(err);
 		}
 
-		GUILayout.Label( "Component Properties", "HeaderLabel" );
+		GUILayout.Label("Component Properties", "HeaderLabel");
 		EditorGUI.indentLevel += 1;
 
 		base.OnInspectorGUI();
@@ -302,16 +303,16 @@ This component's properties are shown below to help you determine which script i
 	/// <summary>
 	/// Returns a value indicating whether an object is a prefab
 	/// </summary>
-	private static bool isPrefab( GameObject item )
+	private static bool isPrefab(GameObject item)
 	{
 
-		if( item == null )
+		if (item == null)
 			return false;
 
 		return
 			item != null &&
-			PrefabUtility.GetPrefabParent( item ) == null &&
-			PrefabUtility.GetPrefabObject( item ) != null;
+			PrefabUtility.GetPrefabParent(item) == null &&
+			PrefabUtility.GetPrefabObject(item) != null;
 
 	}
 
@@ -320,22 +321,22 @@ This component's properties are shown below to help you determine which script i
 	/// </summary>
 	/// <param name="x"></param>
 	/// <returns></returns>
-	private static string getObjectPath( GameObject x )
+	private static string getObjectPath(GameObject x)
 	{
 
-		var path = new System.Text.StringBuilder( 1024 );
+		var path = new System.Text.StringBuilder(1024);
 
 		var depth = 0;
 
-		while( x != null && x.transform.parent != null )
+		while (x != null && x.transform.parent != null)
 		{
-			path.Append( x.name );
-			path.Append( "/" );
+			path.Append(x.name);
+			path.Append("/");
 			x = x.transform.parent.gameObject;
 			depth += 1;
 		}
 
-		return depth.ToString( "D12" ) + "/" + path.ToString();
+		return depth.ToString("D12") + "/" + path.ToString();
 
 	}
 
@@ -351,10 +352,10 @@ This component's properties are shown below to help you determine which script i
 		// Find all of the GameObjects in the scene and sort them
 		// by the "path" in the scene hierarchy
 		var brokenObjects = Resources
-			.FindObjectsOfTypeAll( typeof( GameObject ) )
+			.FindObjectsOfTypeAll(typeof(GameObject))
 			.Cast<GameObject>()
-			.Where( x => x.activeInHierarchy && x.GetComponents<Component>().Any( c => c == null ) )
-			.OrderBy( x => getObjectPath( x ) )
+			.Where(x => x.activeInHierarchy && x.GetComponents<Component>().Any(c => c == null))
+			.OrderBy(x => getObjectPath(x))
 			.ToList();
 
 		return brokenObjects;
@@ -371,24 +372,24 @@ This component's properties are shown below to help you determine which script i
 	private static List<ScriptMatcher> getDefinedScriptTypes()
 	{
 
-		if( types != null )
+		if (types != null)
 			return types;
 
 		// Get the list of all MonoScript instances in the project that
 		// are not abstract or unclosed generic types
 		types = Resources
-			.FindObjectsOfTypeAll( typeof( MonoScript ) )
-			.Where( x => x.GetType() == typeof( MonoScript ) ) // Fix for Unity crash
+			.FindObjectsOfTypeAll(typeof(MonoScript))
+			.Where(x => x.GetType() == typeof(MonoScript)) // Fix for Unity crash
 			.Cast<MonoScript>()
-			.Select( x => new ScriptMatcher( x ) )
-			.Where( x => x.Type != null && !x.Type.IsAbstract && !x.Type.IsGenericType )
+			.Select(x => new ScriptMatcher(x))
+			.Where(x => x.Type != null && !x.Type.IsAbstract && !x.Type.IsGenericType)
 			.ToList();
 
 		// Ignore any MonoScript types defined by Unity, as it's extremely 
 		// unlikely that they could ever be missing
-		var editorAssembly = typeof( Editor ).Assembly;
-		var engineAssembly = typeof( MonoBehaviour ).Assembly;
-		types.RemoveAll( x => x.Type.Assembly == editorAssembly || x.Type.Assembly == engineAssembly );
+		var editorAssembly = typeof(Editor).Assembly;
+		var engineAssembly = typeof(MonoBehaviour).Assembly;
+		types.RemoveAll(x => x.Type.Assembly == editorAssembly || x.Type.Assembly == engineAssembly);
 
 		return types;
 
@@ -421,11 +422,11 @@ This component's properties are shown below to help you determine which script i
 
 		#region Constructor
 
-		public ScriptMatcher( MonoScript script )
+		public ScriptMatcher(MonoScript script)
 		{
 			this.script = script;
 			this.type = script.GetClass();
-			this.fields = GetAllFields( type ).ToList();
+			this.fields = GetAllFields(type).ToList();
 		}
 
 		#endregion
@@ -449,62 +450,62 @@ This component's properties are shown below to help you determine which script i
 		/// least likely.
 		/// </summary>
 		/// <param name="target">The component with the Missing Script issue</param>
-		public float ScoreMatch( SerializedObject target )
+		public float ScoreMatch(SerializedObject target)
 		{
 
 			int count = 0;
 
 			var iter = target.GetIterator();
-			iter.Next( true );
-			while( iter.Next( false ) )
+			iter.Next(true);
+			while (iter.Next(false))
 			{
-				var field = fields.Find( f => f.Name == iter.name );
-				if( field != null )
+				var field = fields.Find(f => f.Name == iter.name);
+				if (field != null)
 				{
-					switch( iter.propertyType )
+					switch (iter.propertyType)
 					{
 						case SerializedPropertyType.ArraySize:
-							if( field.FieldType.HasElementType ) count += 1;
-							else if( typeof( IEnumerable ).IsAssignableFrom( field.FieldType ) ) count += 1;
+							if (field.FieldType.HasElementType) count += 1;
+							else if (typeof(IEnumerable).IsAssignableFrom(field.FieldType)) count += 1;
 							break;
 						case SerializedPropertyType.AnimationCurve:
-							if( field.FieldType == typeof( AnimationCurve ) ) count += 1;
+							if (field.FieldType == typeof(AnimationCurve)) count += 1;
 							break;
 						case SerializedPropertyType.Boolean:
-							if( field.FieldType == typeof( bool ) ) count += 1;
+							if (field.FieldType == typeof(bool)) count += 1;
 							break;
 						case SerializedPropertyType.Bounds:
-							if( field.FieldType == typeof( Bounds ) ) count += 1;
+							if (field.FieldType == typeof(Bounds)) count += 1;
 							break;
 						case SerializedPropertyType.Color:
-							if( field.FieldType == typeof( Color32 ) ) count += 1;
-							else if( field.FieldType == typeof( Color ) ) count += 1;
+							if (field.FieldType == typeof(Color32)) count += 1;
+							else if (field.FieldType == typeof(Color)) count += 1;
 							break;
 						case SerializedPropertyType.Enum:
-							if( field.FieldType.IsEnum ) count += 1;
+							if (field.FieldType.IsEnum) count += 1;
 							break;
 						case SerializedPropertyType.Float:
-							if( typeof( float ).IsAssignableFrom( field.FieldType ) ) count += 1;
+							if (typeof(float).IsAssignableFrom(field.FieldType)) count += 1;
 							break;
 						case SerializedPropertyType.Integer:
-							if( typeof( int ).IsAssignableFrom( field.FieldType ) ) count += 1;
-							else if( typeof( uint ).IsAssignableFrom( field.FieldType ) ) count += 1;
-							else if( field.FieldType.IsEnum ) count += 1;
+							if (typeof(int).IsAssignableFrom(field.FieldType)) count += 1;
+							else if (typeof(uint).IsAssignableFrom(field.FieldType)) count += 1;
+							else if (field.FieldType.IsEnum) count += 1;
 							break;
 						case SerializedPropertyType.ObjectReference:
-							if( !field.FieldType.IsValueType ) count += 1;
+							if (!field.FieldType.IsValueType) count += 1;
 							break;
 						case SerializedPropertyType.Rect:
-							if( field.FieldType == typeof( Rect ) ) count += 1;
+							if (field.FieldType == typeof(Rect)) count += 1;
 							break;
 						case SerializedPropertyType.String:
-							if( field.FieldType == typeof( string ) ) count += 1;
+							if (field.FieldType == typeof(string)) count += 1;
 							break;
 						case SerializedPropertyType.Vector2:
-							if( field.FieldType == typeof( Vector2 ) ) count += 1;
+							if (field.FieldType == typeof(Vector2)) count += 1;
 							break;
 						case SerializedPropertyType.Vector3:
-							if( field.FieldType == typeof( Vector3 ) ) count += 1;
+							if (field.FieldType == typeof(Vector3)) count += 1;
 							break;
 						default:
 							count += 1;
@@ -515,7 +516,7 @@ This component's properties are shown below to help you determine which script i
 
 			}
 
-			if( count == 0 )
+			if (count == 0)
 				return 0f;
 
 			return (float)count / fields.Count;
@@ -529,13 +530,13 @@ This component's properties are shown below to help you determine which script i
 		/// <summary>
 		/// Returns all instance fields on an object, including inherited fields
 		/// </summary>
-		private static FieldInfo[] GetAllFields( Type type )
+		private static FieldInfo[] GetAllFields(Type type)
 		{
 
 			// http://stackoverflow.com/a/1155549/154165
 
-			if( type == null )
-				return new FieldInfo[ 0 ];
+			if (type == null)
+				return new FieldInfo[0];
 
 			BindingFlags flags =
 				BindingFlags.Public |
@@ -544,9 +545,9 @@ This component's properties are shown below to help you determine which script i
 				BindingFlags.DeclaredOnly;
 
 			return
-				type.GetFields( flags )
-				.Concat( GetAllFields( type.BaseType ) )
-				.Where( f => !f.IsDefined( typeof( HideInInspector ), true ) )
+				type.GetFields(flags)
+				.Concat(GetAllFields(type.BaseType))
+				.Where(f => !f.IsDefined(typeof(HideInInspector), true))
 				.ToArray();
 
 		}
