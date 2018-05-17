@@ -2,20 +2,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityHelpers;
-using NUnit.Framework.Constraints;
 
 namespace UnityHelpers.Tests
 {
 	[TestFixture]
 	public class UnityExtensionsTests
 	{
-		interface IMockComponent { }
-		class MockComponent : MonoBehaviour, IMockComponent { }
-		class AnotherMockComponent : MonoBehaviour, IMockComponent { }
+		private interface IMockComponent
+		{ }
+
+		private class MockComponent : MonoBehaviour, IMockComponent
+		{ }
+
+		private class AnotherMockComponent : MonoBehaviour, IMockComponent
+		{ }
 
 		[Test]
 		public void HasComponentFalseWhenNoComponentExists()
@@ -174,7 +176,6 @@ namespace UnityHelpers.Tests
 			Assert.IsTrue(newColor.a > original.a - 0.01 && newColor.a < original.a + 0.01);
 		}
 
-
 		//CODECHANGE: Changed error handling to comply with the "NUnit 3" changes introduced in Unity 5.6
 		//SOLUTION SOURCE: http://answers.unity.com/answers/1410514/view.html
 		//Original (obsolete) Code:
@@ -206,7 +207,6 @@ namespace UnityHelpers.Tests
 				colors.RandomOne();
 				throw new ArgumentException("Cannot randomly pick an item from the list, there are no items in the list!");
 			});
-
 		}
 
 		[Test]
@@ -249,6 +249,5 @@ namespace UnityHelpers.Tests
 			evnt.Invoke(); // second invoke shouldnt call the handler
 			Assert.AreEqual(1, callCount);
 		}
-
 	}
 }
