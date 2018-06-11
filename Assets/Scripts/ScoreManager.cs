@@ -3,21 +3,19 @@ using UnityEngine;
 
 public class ScoreManager : GenericSingleton<ScoreManager>
 {
-	public static bool instantiated;
-	public float currentScore;
-	private int highScoreLength = _GameVars.Saving.highScoreLength;
-
-	List<int> sortingList;
+	public int currentScore;
+	private int highScoreLength = 5;
+	private const string highScoreKey = "HighScore";
+	private List<int> sortingList;
 
 	private void Start()
 	{
-		Player.PlayerDead += Penalty;
 		sortingList = new List<int>();
 
-		//Create list
+		//Create list with the values from the "HighScore"-list (which contains float-values at the specified index) in PlayerPrefs.
 		for (int i = 0; i < highScoreLength; i++)
 		{
-			sortingList.Add((int)PlayerPrefs.GetFloat(_GameVars.Saving.highScore + i));
+			sortingList.Add(PlayerPrefs.GetInt(highScoreKey + i));
 		}
 	}
 
@@ -42,7 +40,7 @@ public class ScoreManager : GenericSingleton<ScoreManager>
 	//Public for test.
 	public void SaveHighScore()
 	{
-		int lowestHighScore = PlayerPrefs.GetInt(_GameVars.Saving.highScore + "4");
+		int lowestHighScore = PlayerPrefs.GetInt(highScoreKey + "4");
 
 		if (currentScore < lowestHighScore)
 		{
@@ -53,12 +51,12 @@ public class ScoreManager : GenericSingleton<ScoreManager>
 		sortingList.Clear();
 
 		//currentScore is greater than last. Overwrite last index.
-		PlayerPrefs.SetFloat(_GameVars.Saving.highScore + (highScoreLength - 1), currentScore);
+		PlayerPrefs.SetInt(highScoreKey + (highScoreLength - 1), currentScore);
 
 		//Make list
 		for (int i = 0; i < highScoreLength; i++)
 		{
-			sortingList.Add((int)PlayerPrefs.GetFloat(_GameVars.Saving.highScore + i));
+			sortingList.Add(PlayerPrefs.GetInt(highScoreKey + i));
 		}
 
 		//Sort
@@ -68,7 +66,7 @@ public class ScoreManager : GenericSingleton<ScoreManager>
 		//Set the PlayerPrefs to our Sorted list.
 		for (int i = 0; i < sortingList.Count; i++)
 		{
-			PlayerPrefs.SetFloat(_GameVars.Saving.highScore + i, sortingList[i]);
+			PlayerPrefs.SetInt("HighScore" + i, sortingList[i]);
 		}
 	}
 
@@ -78,33 +76,32 @@ public class ScoreManager : GenericSingleton<ScoreManager>
 		{
 			print("HighScore " + i + " : " + sortingList[i]);
 		}
-
-
 	}
 
 	public void SetScore(float finishingTime)
 	{
-		currentScore += finishingTime;
+		currentScore += (int)finishingTime;
 	}
 
 	private void ResetHighScore()
 	{
-		PlayerPrefs.DeleteAll();
+		//Delete ALL PlayerPrefs. May not be desired.
+		//PlayerPrefs.DeleteAll();
+
+		//Delete this particular list of PlayerPrefs-values.
+		for (int i = 0; i < highScoreLength; i++)
+		{
+			PlayerPrefs.DeleteKey(highScoreKey + i);
+		}
 	}
 
 	public void Penalty()
 	{
-		currentScore += 10; 
-	}
-
-	//Public for tests and assembly-shit
-	private void OnDestroy()
-	{
-		Player.PlayerDead -= Penalty;
+		currentScore += 10;
 	}
 
 	public void IncreaseScore()
 	{
-		currentScore += 5; 
+		currentScore += 5;
 	}
 }
