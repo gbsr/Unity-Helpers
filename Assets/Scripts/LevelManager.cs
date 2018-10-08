@@ -5,7 +5,7 @@ public class LevelManager : GenericSingleton<LevelManager>
 {
 	public static System.Action LevelLoaded;
 
-	protected override void Awake()
+	protected void Awake()
 	{
 		SceneManager.sceneLoaded += OnSceneLoaded;
 	}
@@ -75,7 +75,7 @@ public class LevelManager : GenericSingleton<LevelManager>
 		return SceneManager.GetActiveScene().buildIndex - 1;
 	}
 
-	protected override void OnDisable()
+	protected void OnDisable()
 	{
 		SceneManager.sceneLoaded -= OnSceneLoaded;
 	}
