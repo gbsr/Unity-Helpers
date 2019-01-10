@@ -18,4 +18,15 @@ public static class MathFunctions
 
 		return snappedNumber;
 	}
+
+	public static Vector3 CalculateSnappedPosition(Vector3 positionToSnap, int snappingSteps)
+	{
+		Vector3 snappedCoords = positionToSnap;
+
+		snappedCoords.x = Mathf.Round(snappedCoords.x * snappingSteps) / snappingSteps;
+		snappedCoords.y = Mathf.Round(snappedCoords.y * snappingSteps) / snappingSteps;
+		snappedCoords.z = Mathf.Round(snappedCoords.z * snappingSteps) / snappingSteps;
+
+		return snappedCoords;
+	}
 }
