@@ -29,4 +29,23 @@ public static class MathFunctions
 
 		return snappedCoords;
 	}
+
+    /// <summary>
+    /// Returns a float with a random +/- offset from the original value. <para></para>
+    /// If <paramref name="clampToNormalizedOffset"/> is TRUE, the offset will be between -1 to +1 (good for normalized values, eg. audio volume & pitch). 
+    /// </summary>
+    public static float RandomOffsettedValue(float initValue, float randomOffset, bool clampToNormalizedOffset)
+    {
+        float randomOffsettedValue = initValue;
+
+        float positiveOffset = Mathf.Abs(randomOffset);
+        if (clampToNormalizedOffset)
+        {
+            positiveOffset = Mathf.Clamp01(positiveOffset);
+        }
+        float negativeOffset = positiveOffset * -1;
+
+        randomOffsettedValue += UnityEngine.Random.Range(negativeOffset, positiveOffset);
+        return randomOffsettedValue;
+    }
 }
