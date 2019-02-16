@@ -12,7 +12,9 @@ using UnityEngine;
 [CustomPropertyDrawer(typeof(MinMaxSlider))]
 public class MinMaxSliderDrawer : PropertyDrawer
 {
-	//Update this for how many fields/lines you want to draw in your property.
+	/// <summary>
+	/// Update this for how many fields/lines you want to draw in your property.
+	/// </summary>
 	private readonly int amountOfFieldsInProperty = 2;		
 	private readonly float fieldHeight = EditorGUIUtility.singleLineHeight;
 
@@ -33,9 +35,14 @@ public class MinMaxSliderDrawer : PropertyDrawer
 		//"PrefixLabel" adds a field for the name of the variable being drawn (in this case the variable for the MinMaxSlider-class).
 		//All Fields end up being indented a bit to the right of the label.
 		position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), prefixLabelContent);
+
+		//EditorGUI.HandlePrefixLabel(position, new Rect(position.x, position.y, 120f, fieldHeight), prefixLabelContent);
+		//position.x = position.x + 150f;
+		//position.width = position.width - 150f;
+
 		//position = EditorGUI.IndentedRect(position);
 		//EditorGUI.DropShadowLabel(position, label);
-		
+
 		int oldIndent;
 		SetIndent(out oldIndent, 0);
 
