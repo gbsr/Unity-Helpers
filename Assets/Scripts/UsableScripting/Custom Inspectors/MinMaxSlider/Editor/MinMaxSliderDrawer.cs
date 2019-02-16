@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿//Written by Pablo Sorribes Bernhard, 2019 02 16
+
+using UnityEditor;
 using UnityEngine;
 
 /// <summary>
@@ -10,15 +12,13 @@ using UnityEngine;
 [CustomPropertyDrawer(typeof(MinMaxSlider))]
 public class MinMaxSliderDrawer : PropertyDrawer
 {
-	private readonly int amountOfFieldsInProperty = 2;
+	//Update this for how many fields/lines you want to draw in your property.
+	private readonly int amountOfFieldsInProperty = 2;		
 	private readonly float fieldHeight = EditorGUIUtility.singleLineHeight;
 
 	private readonly float fieldPaddingY = 2f;
 	private readonly float fieldWidth = 60f;
 	private float SliderHorizontalOffset { get { return fieldWidth + 10f; } }
-
-	//private readonly float minSliderValue = 0.1f;
-	//private readonly float maxSliderValue = 10f;
 
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
@@ -26,11 +26,16 @@ public class MinMaxSliderDrawer : PropertyDrawer
 		// prefab override logic works on the entire property.
 		EditorGUI.BeginProperty(position, label, property);
 
-		//Draw label.
-		//"PrefixLabel" adds a field for the name of the variable being drawn (in this the variable for the MinMaxValue-class).
-		//All Fields end up being indented a bit to the right of the label.
-		position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+		var prefixLabelContent = label;
+		prefixLabelContent.tooltip = $"Slider allowing you to set your custom ranges, and get the respective min/max values set in the slider.";
 
+		//Draw label.
+		//"PrefixLabel" adds a field for the name of the variable being drawn (in this case the variable for the MinMaxSlider-class).
+		//All Fields end up being indented a bit to the right of the label.
+		position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), prefixLabelContent);
+		//position = EditorGUI.IndentedRect(position);
+		//EditorGUI.DropShadowLabel(position, label);
+		
 		int oldIndent;
 		SetIndent(out oldIndent, 0);
 
@@ -41,26 +46,26 @@ public class MinMaxSliderDrawer : PropertyDrawer
 		float startPosY = position.y;
 		var minSliderRangeLabelRect = new Rect(position.x, startPosY, fieldWidth, fieldHeight);
 		var maxSliderRangeLabelRect = new Rect(position.x + position.width - fieldWidth, startPosY, fieldWidth, fieldHeight);
-		var minSliderRect = new Rect(position.x + SliderHorizontalOffset, startPosY, position.width - (SliderHorizontalOffset * 2), fieldHeight);
+		var sliderRect = new Rect(position.x + SliderHorizontalOffset, startPosY, position.width - (SliderHorizontalOffset * 2), fieldHeight);
 
 		//offset position.y by field size
 		startPosY += fieldHeight + fieldPaddingY;
-		var minLabelRect = new Rect(position.x + (fieldWidth / 2), startPosY, fieldWidth + (fieldWidth / 4), fieldHeight);
-		var maxLabelRect = new Rect(position.x + position.width - (fieldWidth * 2), startPosY, fieldWidth + (fieldWidth / 4), fieldHeight);
+		var minValLabelRect = new Rect(position.x + (fieldWidth / 2), startPosY, fieldWidth + (fieldWidth / 4), fieldHeight);
+		var maxValLabelRect = new Rect(position.x + position.width - (fieldWidth * 2), startPosY, fieldWidth + (fieldWidth / 4), fieldHeight);
 
 		#endregion Field Positioning
 
 		#region Get Properties & Create float values
 
 		//Get references to the properties for a slider's minimum/maximum range.
-		var minSliderRangeProp = property.FindPropertyRelative("minSliderRange");
-		var maxSliderRangeProp = property.FindPropertyRelative("maxSliderRange");
-		float minSliderRangeValue = minSliderRangeProp.floatValue;
-		float maxSliderRangeValue = maxSliderRangeProp.floatValue;
+		var minSliderRangeProp = property.FindPropertyRelative("sliderRangeMin");
+		var maxSliderRangeProp = property.FindPropertyRelative("sliderRangeMax");
+		float minSliderRangeVal = minSliderRangeProp.floatValue;
+		float maxSliderRangeVal = maxSliderRangeProp.floatValue;
 
-		//Get references to the min/max value-properties and their floatvalues.
-		var minProp = property.FindPropertyRelative("min");
-		var maxProp = property.FindPropertyRelative("max");
+		//Get references to the min/max value-properties and their float values.
+		var minProp = property.FindPropertyRelative("minVal");
+		var maxProp = property.FindPropertyRelative("maxVal");
 		float minval = minProp.floatValue;
 		float maxval = maxProp.floatValue;
 
@@ -69,28 +74,28 @@ public class MinMaxSliderDrawer : PropertyDrawer
 		#region Min/Max Range of Sliders
 
 		//Create labels with tooltips for the Float-fields.
-		var minSliderLabel = new GUIContent("Min", "Minimum Value for the slider.");
-		var maxSliderLabel = new GUIContent("Max", "Maximum Value for the slider.");
+		var minSliderLabel = new GUIContent("Min", "Lower total range for the slider.");
+		var maxSliderLabel = new GUIContent("Max", "Upper total range for the slider.");
 
-		//Draw MinMax-Float fields without shittons of label padding
+		//Draw MinMax Slider float fields without shittons of label padding
 		var originalLabelWidth = EditorGUIUtility.labelWidth;
 		EditorGUIUtility.labelWidth = 30f;
-		minSliderRangeValue = EditorGUI.FloatField(minSliderRangeLabelRect, minSliderLabel, minSliderRangeValue);
-		maxSliderRangeValue = EditorGUI.FloatField(maxSliderRangeLabelRect, maxSliderLabel, maxSliderRangeValue);
+		minSliderRangeVal = EditorGUI.FloatField(minSliderRangeLabelRect, minSliderLabel, minSliderRangeVal);
+		maxSliderRangeVal = EditorGUI.FloatField(maxSliderRangeLabelRect, maxSliderLabel, maxSliderRangeVal);
 		EditorGUIUtility.labelWidth = originalLabelWidth;
 
 		//Clamp slider's min/max range to stop from crossing each other and balla ur.
-		minSliderRangeValue = Mathf.Clamp(minSliderRangeValue, float.MinValue, maxSliderRangeValue);
-		maxSliderRangeValue = Mathf.Clamp(maxSliderRangeValue, minSliderRangeValue, float.MaxValue);
+		minSliderRangeVal = Mathf.Clamp(minSliderRangeVal, float.MinValue, maxSliderRangeVal);
+		maxSliderRangeVal = Mathf.Clamp(maxSliderRangeVal, minSliderRangeVal, float.MaxValue);
 
 		//Assign clamped values to slider's min/max range.
-		minSliderRangeProp.floatValue = minSliderRangeValue;
-		maxSliderRangeProp.floatValue = maxSliderRangeValue;
+		minSliderRangeProp.floatValue = minSliderRangeVal;
+		maxSliderRangeProp.floatValue = maxSliderRangeVal;
 
 		#endregion Min/Max Range of Sliders
 
 		//Draw MinMaxSlider and save previous values to clamp the result later on.
-		EditorGUI.MinMaxSlider(minSliderRect, ref minval, ref maxval, minSliderRangeValue, maxSliderRangeValue);
+		EditorGUI.MinMaxSlider(sliderRect, ref minval, ref maxval, minSliderRangeVal, maxSliderRangeVal);
 		float previousMaxVal = maxval;
 
 		#region Min/Max Value
@@ -101,13 +106,13 @@ public class MinMaxSliderDrawer : PropertyDrawer
 		//Draw Float fields without shittons of label padding
 		originalLabelWidth = EditorGUIUtility.labelWidth;
 		EditorGUIUtility.labelWidth = 45f;
-		minval = EditorGUI.FloatField(minLabelRect, minLabel, minval);
-		maxval = EditorGUI.FloatField(maxLabelRect, maxLabel, maxval);
+		minval = EditorGUI.FloatField(minValLabelRect, minLabel, minval);
+		maxval = EditorGUI.FloatField(maxValLabelRect, maxLabel, maxval);
 		EditorGUIUtility.labelWidth = originalLabelWidth;
 
 		//Clamp the values to stop them from crossing each other.
-		minval = Mathf.Clamp(minval, minSliderRangeValue, previousMaxVal);
-		maxval = Mathf.Clamp(maxval, minval, maxSliderRangeValue);
+		minval = Mathf.Clamp(minval, minSliderRangeVal, previousMaxVal);
+		maxval = Mathf.Clamp(maxval, minval, maxSliderRangeVal);
 
 		//Set the clamped slider/float field values.
 		minProp.floatValue = minval;
