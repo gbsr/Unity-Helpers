@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// A collection of handy math functions, in addition to the ones present in "Mathf"
+/// A collection of handy math functions, in addition to the ones present in <see cref="Mathf"/>
 /// </summary>
 public static class MathFunctions
 {
