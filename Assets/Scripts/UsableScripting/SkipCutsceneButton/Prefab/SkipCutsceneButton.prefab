@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2584630541960908336}
   - component: {fileID: 2584630541960908339}
   m_Layer: 5
-  m_Name: HolderRect
+  m_Name: HolderRect (Background Image)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 2584630542089022009}
   - component: {fileID: 2584630542089022008}
   m_Layer: 5
-  m_Name: FillImage
+  m_Name: FillImage (Progress Bar)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -148,7 +148,7 @@ MonoBehaviour:
   m_FillMethod: 4
   m_FillAmount: 0
   m_FillClockwise: 1
-  m_FillOrigin: 0
+  m_FillOrigin: 2
   m_UseSpriteMesh: 0
 --- !u!1 &2584630542683708916
 GameObject:
@@ -162,7 +162,7 @@ GameObject:
   - component: {fileID: 2584630542683708915}
   - component: {fileID: 2584630542683708914}
   m_Layer: 5
-  m_Name: ButtonImage
+  m_Name: ButtonIconImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
