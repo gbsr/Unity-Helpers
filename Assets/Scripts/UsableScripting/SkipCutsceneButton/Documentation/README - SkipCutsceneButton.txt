@@ -2,11 +2,14 @@ This script can be used to create a "Skip Cutscene"-button,
 ie. an UI-element with an icon for a button and a round progress bar which 
 increases while the player presses said button, and decreases when the button is released. 
 
-This script can also affect the scale of the button icon, making it becomen bigger or smaller
+The script can also affect the scale of the button icon, making it become bigger or smaller
 when the player presses the button, and return to its initial size when the button is released.
 
 Keep in mind that you will *not* need Unity's UI Button-component for this to work.
 This script just affects a circle-shaped UI Image to simulate the progress bar-effect.
+
+For this example I have made 3 circle-shaped images, where each is a bit smaller than the last. 
+But you could probably just a same sized circle and then rescale it in Unity tho.
 
 ***Hierarchy setup:***
 - SkipCutSceneButton [RectTransform] - 	[OPTIONAL] An empty parent with the script attached. 
